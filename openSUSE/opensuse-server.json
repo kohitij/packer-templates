@@ -1,0 +1,72 @@
+{
+  "variables": {
+    "vm_disk_adapter_type": "scsi",
+    "vm_disk_size": "36864",
+    "vm_memory": "1024",
+    "vm_ssh_password": "linux",
+    "vm_ssh_username": "root",
+    "vm_vcpu": "1"
+  },
+  "builders": [
+    {
+      "type": "vmware-iso",
+      "disk_size": "{{ user `vm_disk_size` }}",
+      "guest_os_type": "opensuse-64",
+      "iso_checksum_type": "{{ user `iso_checksum_type` }}",
+      "iso_checksum": "{{ user `iso_checksum` }}",
+      "ssh_username": "{{ user `vm_ssh_username` }}",
+      "ssh_password": "{{ user `vm_ssh_password` }}",
+      "ssh_wait_timeout": "60m",
+      "shutdown_command": "/sbin/shutdown -h now",
+      "output_directory": "output-{{ user `vm_name` }}-{{ build_type }}-{{ timestamp }}",
+      "vm_name": "{{ user `vm_name` }}-{{ timestamp }}",
+      "http_directory": "http",
+      "headless": false,
+      "boot_command": [
+        "<esc><enter><wait>",
+        "linux ",
+        "biosdevname=0 ",
+        "net.ifnames=0 ",
+        "netdevice=eth0 ",
+        "netsetup=dhcp ",
+        "lang=en_US ",
+        "textmode=1 ",
+        "autoyast=http://{{ user `local_server_ip` }}:{{ .HTTPPort }}/opensuse/autoinst.xml<wait> ",
+        "<enter><wait>",
+        "{{ user `boot_command_prefix` }}"
+      ],
+      "cpus": "{{ user `vm_vcpu` }}",
+      "disk_adapter_type": "{{ user `vm_disk_adapter_type` }}",
+      "disk_type_id": 0,
+      "iso_url": "file:{{ user `iso_path` }}",
+      "memory": "{{ user `vm_memory` }}",
+      "vmx_remove_ethernet_interfaces": true
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "echo SLEEP",
+        "sleep 60s"
+      ]
+    },
+    {
+      "type": "shell",
+      "expect_disconnect": true,
+      "scripts": [
+        "scripts/base.sh",
+        "scripts/install-nginx.sh",
+        "scripts/install-dotnetcore.sh",
+        "scripts/cleanup.sh"
+      ]
+    }
+  ],
+  "post-processors": [
+    {
+        "type": "manifest",
+        "output": "manifest.json",
+        "strip_path": true
+    }
+  ]
+}

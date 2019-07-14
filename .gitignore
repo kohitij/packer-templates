@@ -1,0 +1,12 @@
+manifest.json
+vmware-disk/
+.idea/
+.DS_Store
+.vscode/
+*.box
+*.iso
+output-*
+packer_cache
+private_vars.json
+Vagrantfile
+venv
